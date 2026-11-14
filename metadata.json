@@ -1,0 +1,6 @@
+{
+  "name": "Noor English",
+  "description": "AI English teacher for Arabic-speaking beginners featuring written and vocal practice modes.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

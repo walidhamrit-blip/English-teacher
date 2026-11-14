@@ -1,0 +1,200 @@
+{
+  "entities": {
+    "UserProgress": {
+      "title": "UserProgress",
+      "description": "Learner profile, XP, and completed beginner English lessons.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated Firebase Auth UID."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Learner display name."
+        },
+        "xp": {
+          "type": "integer",
+          "description": "Earned learning experience points."
+        },
+        "completedLessonIds": {
+          "type": "array",
+          "description": "List of completed lesson identifiers."
+        },
+        "lastLessonId": {
+          "type": "string",
+          "description": "Most recently practiced lesson ID so the learner can resume across sessions."
+        },
+        "dailyGoal": {
+          "type": "integer",
+          "description": "User-selected daily message practice goal (e.g., 5, 10, or 20 messages)."
+        },
+        "currentStreak": {
+          "type": "integer",
+          "description": "Consecutive calendar days of app usage."
+        },
+        "longestStreak": {
+          "type": "integer",
+          "description": "Longest consecutive days streak achieved by the user."
+        },
+        "lastActiveDate": {
+          "type": "string",
+          "description": "Most recent active local calendar date in YYYY-MM-DD format."
+        },
+        "dailyStudyMinutesGoal": {
+          "type": "integer",
+          "description": "User-selected daily English learning time goal in minutes (e.g., 10, 20, or 30)."
+        },
+        "todayStudySeconds": {
+          "type": "integer",
+          "description": "Total active study session seconds logged for lastStudyDate."
+        },
+        "lastStudyDate": {
+          "type": "string",
+          "description": "Local calendar date (YYYY-MM-DD) for which todayStudySeconds was recorded."
+        },
+        "reminderEnabled": {
+          "type": "boolean",
+          "description": "Whether daily English practice reminder notifications are enabled."
+        },
+        "reminderHour": {
+          "type": "integer",
+          "description": "Preferred reminder hour in 24-hour format (0-23)."
+        },
+        "reminderMinute": {
+          "type": "integer",
+          "description": "Preferred reminder minute (0-59)."
+        },
+        "lastDailyQuizDate": {
+          "type": "string",
+          "description": "Local calendar date (YYYY-MM-DD) when the 5-question flashcard quiz was completed."
+        },
+        "lastDailyQuizScore": {
+          "type": "integer",
+          "description": "Most recent daily quiz score out of 5."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when profile was created via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when profile was last updated via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": ["userId", "displayName", "xp", "completedLessonIds", "createdAt", "updatedAt"]
+    },
+    "VocabItem": {
+      "title": "VocabItem",
+      "description": "Saved English vocabulary word or phrase with Arabic translation and phonetic guide.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID."
+        },
+        "english": {
+          "type": "string",
+          "description": "English word or phrase."
+        },
+        "arabic": {
+          "type": "string",
+          "description": "Arabic translation."
+        },
+        "phoneticArabic": {
+          "type": "string",
+          "description": "Approximate pronunciation written in Arabic script."
+        },
+        "phoneticEnglish": {
+          "type": "string",
+          "description": "IPA transcription and beginner syllable phonetic spelling (e.g. /ˈkɒfi/ • KAW-fee)."
+        },
+        "exampleEnglish": {
+          "type": "string",
+          "description": "Simple beginner English example sentence."
+        },
+        "category": {
+          "type": "string",
+          "description": "Topic category such as Greetings, Pronunciation, or Tutor."
+        },
+        "mastered": {
+          "type": "boolean",
+          "description": "Whether the learner marked this word as mastered."
+        },
+        "usageCount": {
+          "type": "integer",
+          "description": "Frequency count of how many times this word appeared in user conversations."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": ["userId", "english", "arabic", "phoneticArabic", "exampleEnglish", "category", "mastered", "createdAt", "updatedAt"]
+    },
+    "TutorTurn": {
+      "title": "TutorTurn",
+      "description": "Saved written or vocal AI English tutor practice exchange.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID."
+        },
+        "mode": {
+          "type": "string",
+          "enum": ["written", "vocal"],
+          "description": "Practice mode: written or vocal."
+        },
+        "userInput": {
+          "type": "string",
+          "description": "Learner text input or speech transcription."
+        },
+        "englishReply": {
+          "type": "string",
+          "description": "Teacher English response."
+        },
+        "arabicTranslation": {
+          "type": "string",
+          "description": "Arabic translation of the teacher response."
+        },
+        "feedbackArabic": {
+          "type": "string",
+          "description": "Grammar or pronunciation guidance in Arabic."
+        },
+        "phoneticHint": {
+          "type": "string",
+          "description": "Arabic phonetic pronunciation hint."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": ["userId", "mode", "userInput", "englishReply", "arabicTranslation", "feedbackArabic", "phoneticHint", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProgress" },
+      "description": "Learner profile and lesson progress document."
+    },
+    "/users/{userId}/vocab/{wordId}": {
+      "schema": { "$ref": "#/entities/VocabItem" },
+      "description": "Personal saved English-Arabic vocabulary wordbook."
+    },
+    "/users/{userId}/tutor_turns/{turnId}": {
+      "schema": { "$ref": "#/entities/TutorTurn" },
+      "description": "Persisted written and vocal AI tutor conversation turns."
+    }
+  }
+}

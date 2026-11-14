@@ -1,0 +1,162 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global safety net: deny everything unless explicitly matched below
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidUserProgress(data, userId) {
+      return data.userId is string &&
+             data.userId == userId &&
+             data.displayName is string &&
+             data.displayName.size() >= 1 &&
+             data.displayName.size() <= 80 &&
+             data.xp is int &&
+             data.xp >= 0 &&
+             data.xp <= 1000000 &&
+             data.completedLessonIds is list &&
+             data.completedLessonIds.size() <= 30 &&
+             (data.completedLessonIds.size() == 0 || data.completedLessonIds[0] is string) &&
+             (!('lastLessonId' in data) || (data.lastLessonId is string && data.lastLessonId.size() <= 64)) &&
+             (!('dailyGoal' in data) || (data.dailyGoal is int && data.dailyGoal >= 1 && data.dailyGoal <= 100)) &&
+             (!('currentStreak' in data) || (data.currentStreak is int && data.currentStreak >= 0 && data.currentStreak <= 3650)) &&
+             (!('longestStreak' in data) || (data.longestStreak is int && data.longestStreak >= 0 && data.longestStreak <= 3650)) &&
+             (!('lastActiveDate' in data) || (data.lastActiveDate is string && data.lastActiveDate.size() <= 10)) &&
+             (!('dailyStudyMinutesGoal' in data) || (data.dailyStudyMinutesGoal is int && data.dailyStudyMinutesGoal >= 1 && data.dailyStudyMinutesGoal <= 180)) &&
+             (!('todayStudySeconds' in data) || (data.todayStudySeconds is int && data.todayStudySeconds >= 0 && data.todayStudySeconds <= 86400)) &&
+             (!('lastStudyDate' in data) || (data.lastStudyDate is string && data.lastStudyDate.size() <= 10)) &&
+             (!('reminderEnabled' in data) || data.reminderEnabled is bool) &&
+             (!('reminderHour' in data) || (data.reminderHour is int && data.reminderHour >= 0 && data.reminderHour <= 23)) &&
+             (!('reminderMinute' in data) || (data.reminderMinute is int && data.reminderMinute >= 0 && data.reminderMinute <= 59)) &&
+             (!('lastDailyQuizDate' in data) || (data.lastDailyQuizDate is string && data.lastDailyQuizDate.size() <= 10)) &&
+             (!('lastDailyQuizScore' in data) || (data.lastDailyQuizScore is int && data.lastDailyQuizScore >= 0 && data.lastDailyQuizScore <= 5)) &&
+             data.createdAt is timestamp &&
+             data.createdAt <= request.time &&
+             data.updatedAt is timestamp &&
+             data.updatedAt <= request.time;
+    }
+
+    function isValidVocabItem(data, userId) {
+      return data.userId is string &&
+             data.userId == userId &&
+             data.english is string &&
+             data.english.size() >= 1 &&
+             data.english.size() <= 120 &&
+             data.arabic is string &&
+             data.arabic.size() >= 1 &&
+             data.arabic.size() <= 160 &&
+             data.phoneticArabic is string &&
+             data.phoneticArabic.size() <= 160 &&
+             (!('phoneticEnglish' in data) || (data.phoneticEnglish is string && data.phoneticEnglish.size() <= 160)) &&
+             data.exampleEnglish is string &&
+             data.exampleEnglish.size() <= 240 &&
+             data.category is string &&
+             data.category.size() >= 1 &&
+             data.category.size() <= 40 &&
+             data.mastered is bool &&
+             (!('usageCount' in data) || (data.usageCount is int && data.usageCount >= 1 && data.usageCount <= 10000)) &&
+             data.createdAt is timestamp &&
+             data.createdAt <= request.time &&
+             data.updatedAt is timestamp &&
+             data.updatedAt <= request.time;
+    }
+
+    function isValidTutorTurn(data, userId) {
+      return data.userId is string &&
+             data.userId == userId &&
+             data.mode is string &&
+             (data.mode == 'written' || data.mode == 'vocal') &&
+             data.userInput is string &&
+             data.userInput.size() >= 1 &&
+             data.userInput.size() <= 500 &&
+             data.englishReply is string &&
+             data.englishReply.size() >= 1 &&
+             data.englishReply.size() <= 1500 &&
+             data.arabicTranslation is string &&
+             data.arabicTranslation.size() <= 1500 &&
+             data.feedbackArabic is string &&
+             data.feedbackArabic.size() <= 1500 &&
+             data.phoneticHint is string &&
+             data.phoneticHint.size() <= 400 &&
+             data.createdAt is timestamp &&
+             data.createdAt <= request.time;
+    }
+
+    match /users/{userId} {
+      allow get: if isSignedIn() && request.auth.uid == userId && isValidId(userId);
+      allow list: if false;
+
+      allow create: if isSignedIn() &&
+                       request.auth.uid == userId &&
+                       isValidId(userId) &&
+                       incoming().keys().hasAll(['userId', 'displayName', 'xp', 'completedLessonIds', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['userId', 'displayName', 'xp', 'completedLessonIds', 'lastLessonId', 'dailyGoal', 'currentStreak', 'longestStreak', 'lastActiveDate', 'dailyStudyMinutesGoal', 'todayStudySeconds', 'lastStudyDate', 'reminderEnabled', 'reminderHour', 'reminderMinute', 'lastDailyQuizDate', 'lastDailyQuizScore', 'createdAt', 'updatedAt']) &&
+                       isValidUserProgress(incoming(), userId);
+
+      allow update: if isSignedIn() &&
+                       request.auth.uid == userId &&
+                       isValidId(userId) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       isValidUserProgress(incoming(), userId) &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'xp', 'completedLessonIds', 'lastLessonId', 'dailyGoal', 'currentStreak', 'longestStreak', 'lastActiveDate', 'dailyStudyMinutesGoal', 'todayStudySeconds', 'lastStudyDate', 'reminderEnabled', 'reminderHour', 'reminderMinute', 'lastDailyQuizDate', 'lastDailyQuizScore', 'updatedAt']);
+
+      allow delete: if false;
+
+      match /vocab/{wordId} {
+        allow get: if isSignedIn() && request.auth.uid == userId && isValidId(wordId);
+        allow list: if isSignedIn() && request.auth.uid == userId;
+
+        allow create: if isSignedIn() &&
+                         request.auth.uid == userId &&
+                         isValidId(wordId) &&
+                         incoming().keys().hasAll(['userId', 'english', 'arabic', 'phoneticArabic', 'exampleEnglish', 'category', 'mastered', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['userId', 'english', 'arabic', 'phoneticArabic', 'phoneticEnglish', 'exampleEnglish', 'category', 'mastered', 'usageCount', 'createdAt', 'updatedAt']) &&
+                         isValidVocabItem(incoming(), userId);
+
+        allow update: if isSignedIn() &&
+                         request.auth.uid == userId &&
+                         isValidId(wordId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         isValidVocabItem(incoming(), userId) &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['english', 'arabic', 'phoneticArabic', 'phoneticEnglish', 'exampleEnglish', 'category', 'mastered', 'usageCount', 'updatedAt']);
+
+        allow delete: if isSignedIn() && request.auth.uid == userId && isValidId(wordId);
+      }
+
+      match /tutor_turns/{turnId} {
+        allow get: if isSignedIn() && request.auth.uid == userId && isValidId(turnId);
+        allow list: if isSignedIn() && request.auth.uid == userId;
+
+        allow create: if isSignedIn() &&
+                         request.auth.uid == userId &&
+                         isValidId(turnId) &&
+                         incoming().keys().hasAll(['userId', 'mode', 'userInput', 'englishReply', 'arabicTranslation', 'feedbackArabic', 'phoneticHint', 'createdAt']) &&
+                         incoming().keys().hasOnly(['userId', 'mode', 'userInput', 'englishReply', 'arabicTranslation', 'feedbackArabic', 'phoneticHint', 'createdAt']) &&
+                         isValidTutorTurn(incoming(), userId);
+
+        allow update: if false;
+
+        allow delete: if isSignedIn() && request.auth.uid == userId && isValidId(turnId);
+      }
+    }
+  }
+}

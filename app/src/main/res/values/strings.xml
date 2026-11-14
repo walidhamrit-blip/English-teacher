@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Noor English</string>
+    <string name="sign_in_with_google">Sign in with Google • الدخول بحساب Google</string>
+    <string name="welcome_illustration_desc">Noor English bilingual learning illustration</string>
+    <string name="sign_out_desc">Sign out</string>
+    <string name="chat_mic_start_desc">Practice speaking English with microphone</string>
+    <string name="chat_mic_stop_desc">Stop speech recognition</string>
+    <string name="chat_mic_prompt_en">Speak English clearly into your microphone</string>
+    <string name="reminder_channel_name">تذكير الممارسة اليومي • Practice Reminders</string>
+    <string name="reminder_channel_desc">تذكيرات يومية للتدرب على الإنجليزية مع المعلمة نور</string>
+    <string name="reminder_notification_title">حان وقت ممارسة الإنجليزية!</string>
+    <string name="reminder_notification_body">خصّص بضع دقائق مع المعلمة نور اليوم للحفاظ على سلسلتك وتعلّم كلمات جديدة.</string>
+</resources>
